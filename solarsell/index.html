@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SolarSell — ระบบจัดการร้านขายและติดตั้งโซลาร์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-base:       #0b0f1a;
+      --bg-panel:      #111827;
+      --bg-card:       #1a2235;
+      --bg-card-hover: #1f2a42;
+      --border:        rgba(255,255,255,0.07);
+      --solar-gold:    #f59e0b;
+      --solar-amber:   #d97706;
+      --solar-orange:  #ea580c;
+      --solar-glow:    rgba(245,158,11,0.15);
+      --green:         #10b981;
+      --blue:          #3b82f6;
+      --red:           #ef4444;
+      --purple:        #8b5cf6;
+      --text-primary:  #f1f5f9;
+      --text-muted:    #64748b;
+      --text-soft:     #94a3b8;
+      --sidebar-w:     260px;
+      --topbar-h:      64px;
+      --radius:        12px;
+      --radius-sm:     8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SIDEBAR ─────────────────────────────────────── */
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-w); height: 100vh;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .sidebar-brand {
+      padding: 0 20px;
+      height: var(--topbar-h);
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--solar-gold), var(--solar-orange));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px var(--solar-glow);
+    }
+
+    .brand-text { line-height: 1.1; }
+    .brand-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+    .brand-tagline { font-size: 10px; color: var(--text-muted); letter-spacing: .5px; }
+
+    .sidebar-scroll { overflow-y: auto; flex: 1; padding: 16px 0; }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .nav-section { padding: 8px 20px 4px; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted); letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background .15s, color .15s;
+      position: relative;
+      color: var(--text-soft);
+      font-size: 13.5px;
+      font-weight: 400;
+      text-decoration: none;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+
+    .nav-item.active {
+      background: var(--solar-glow);
+      color: var(--solar-gold);
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--solar-gold), var(--solar-orange));
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--solar-orange);
+      color: #fff;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    .nav-badge.green { background: var(--green); }
+    .nav-badge.blue  { background: var(--blue); }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-info { flex: 1; overflow: hidden; }
+    .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-muted); }
+
+    /* ─── TOPBAR ──────────────────────────────────────── */
+    .topbar {
+      position: fixed;
+      top: 0; left: var(--sidebar-w); right: 0;
+      height: var(--topbar-h);
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 28px; gap: 16px;
+      z-index: 90;
+    }
+
+    .topbar-title { font-size: 16px; font-weight: 600; flex: 1; }
+    .topbar-sub { font-size: 12px; color: var(--text-muted); }
+
+    .topbar-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      width: 220px;
+    }
+
+    .topbar-search input {
+      background: none; border: none; outline: none;
+      color: var(--text-primary); font-family: inherit; font-size: 13px;
+      width: 100%;
+    }
+
+    .topbar-search input::placeholder { color: var(--text-muted); }
+    .topbar-search i { color: var(--text-muted); font-size: 13px; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px;
+      transition: all .15s;
+      position: relative;
+    }
+
+    .icon-btn:hover { color: var(--text-primary); background: var(--bg-card-hover); }
+
+    .notif-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 7px; height: 7px;
+      background: var(--solar-gold);
+      border-radius: 50%;
+      border: 2px solid var(--bg-panel);
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .15s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--solar-gold), var(--solar-orange));
+      color: #0b0f1a;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.3);
+    }
+
+    .btn-primary:hover { box-shadow: 0 4px 24px rgba(245,158,11,0.5); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+    }
+
+    .btn-ghost:hover { color: var(--text-primary); background: var(--bg-card-hover); }
+
+    /* ─── MAIN CONTENT ─────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      padding-top: var(--topbar-h);
+      min-height: 100vh;
+    }
+
+    .page { padding: 28px; display: none; }
+    .page.active { display: block; }
+
+    /* ─── GRID & CARDS ─────────────────────────────────── */
+    .grid { display: grid; gap: 20px; }
+    .g2 { grid-template-columns: repeat(2, 1fr); }
+    .g3 { grid-template-columns: repeat(3, 1fr); }
+    .g4 { grid-template-columns: repeat(4, 1fr); }
+    .g12 { grid-template-columns: 1fr 2fr; }
+    .g21 { grid-template-columns: 2fr 1fr; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      transition: border-color .2s;
+    }
+
+    .card:hover { border-color: rgba(255,255,255,0.12); }
+
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .card-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ─── STAT CARDS ───────────────────────────────────── */
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      display: flex; align-items: flex-start; gap: 16px;
+      position: relative; overflow: hidden;
+      transition: all .2s;
+    }
+
+    .stat-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.12); }
+
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+
+    .stat-icon.gold   { background: rgba(245,158,11,.15); color: var(--solar-gold); }
+    .stat-icon.green  { background: rgba(16,185,129,.15); color: var(--green); }
+    .stat-icon.blue   { background: rgba(59,130,246,.15); color: var(--blue); }
+    .stat-icon.orange { background: rgba(234,88,12,.15);  color: var(--solar-orange); }
+    .stat-icon.purple { background: rgba(139,92,246,.15); color: var(--purple); }
+    .stat-icon.red    { background: rgba(239,68,68,.15);  color: var(--red); }
+
+    .stat-body { flex: 1; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-value { font-size: 26px; font-weight: 700; line-height: 1; font-family: 'Space Mono', monospace; }
+    .stat-value small { font-size: 13px; font-weight: 400; }
+
+    .stat-change {
+      font-size: 12px; margin-top: 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .stat-change.up   { color: var(--green); }
+    .stat-change.down { color: var(--red); }
+
+    .stat-glow {
+      position: absolute; right: -20px; bottom: -20px;
+      width: 80px; height: 80px; border-radius: 50%;
+      opacity: .06;
+    }
+
+    .stat-glow.gold   { background: var(--solar-gold); }
+    .stat-glow.green  { background: var(--green); }
+    .stat-glow.blue   { background: var(--blue); }
+    .stat-glow.orange { background: var(--solar-orange); }
+
+    /* ─── CHART BARS (CSS-only) ────────────────────────── */
+    .chart-bars {
+      display: flex; align-items: flex-end;
+      gap: 6px; height: 120px;
+      padding: 0 4px;
+    }
+
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+
+    .bar {
+      width: 100%; border-radius: 4px 4px 0 0;
+      background: linear-gradient(to top, var(--solar-amber), var(--solar-gold));
+      transition: height .4s cubic-bezier(.4,0,.2,1);
+      position: relative; cursor: pointer;
+    }
+
+    .bar:hover::after {
+      content: attr(data-val);
+      position: absolute; top: -28px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--solar-gold); color: #000;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .bar.blue { background: linear-gradient(to top, #1d4ed8, var(--blue)); }
+    .bar.green { background: linear-gradient(to top, #059669, var(--green)); }
+    .bar-label { font-size: 10px; color: var(--text-muted); }
+
+    /* ─── TABLE ────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .8px;
+      padding: 10px 14px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor;
+      opacity: .8;
+    }
+
+    .badge-gold    { background: rgba(245,158,11,.15); color: var(--solar-gold); }
+    .badge-green   { background: rgba(16,185,129,.15); color: var(--green); }
+    .badge-blue    { background: rgba(59,130,246,.15); color: var(--blue); }
+    .badge-red     { background: rgba(239,68,68,.15);  color: var(--red); }
+    .badge-purple  { background: rgba(139,92,246,.15); color: var(--purple); }
+    .badge-muted   { background: rgba(100,116,139,.15);color: var(--text-muted); }
+
+    /* ─── PROGRESS ─────────────────────────────────────── */
+    .progress-row { margin-bottom: 14px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+    .progress-label span:last-child { color: var(--text-muted); }
+
+    .progress-track {
+      height: 6px; background: rgba(255,255,255,0.07);
+      border-radius: 3px; overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(to right, var(--solar-amber), var(--solar-gold));
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+
+    .progress-fill.blue  { background: linear-gradient(to right, #1d4ed8, var(--blue)); }
+    .progress-fill.green { background: linear-gradient(to right, #059669, var(--green)); }
+    .progress-fill.red   { background: linear-gradient(to right, #b91c1c, var(--red)); }
+
+    /* ─── PIPELINE ─────────────────────────────────────── */
+    .pipeline { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; }
+    .pipeline::-webkit-scrollbar { height: 4px; }
+    .pipeline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .pipeline-col {
+      min-width: 220px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .pipeline-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .pipeline-stage { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .stage-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .pipeline-count { font-size: 11px; color: var(--text-muted); }
+
+    .deal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .deal-card:hover { border-color: var(--solar-gold); transform: translateX(2px); }
+
+    .deal-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .deal-value { font-size: 13px; font-weight: 700; color: var(--solar-gold); font-family: 'Space Mono', monospace; }
+    .deal-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+
+    /* ─── INSTALL TIMELINE ─────────────────────────────── */
+    .install-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .install-item {
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+
+    .install-date {
+      min-width: 56px;
+      text-align: center;
+      background: rgba(255,255,255,0.04);
+      border-radius: var(--radius-sm);
+      padding: 6px 4px;
+    }
+
+    .install-date .day { font-size: 20px; font-weight: 700; font-family: 'Space Mono', monospace; line-height: 1; }
+    .install-date .month { font-size: 10px; color: var(--text-muted); }
+
+    .install-body { flex: 1; }
+    .install-name { font-size: 13px; font-weight: 600; }
+    .install-addr { font-size: 11px; color: var(--text-muted); margin: 2px 0 6px; }
+    .install-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ─── DONUT CHART ──────────────────────────────────── */
+    .donut-wrap { position: relative; width: 140px; height: 140px; margin: 0 auto 20px; }
+
+    .donut-wrap svg { transform: rotate(-90deg); }
+
+    .donut-center {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .donut-center .val { font-size: 22px; font-weight: 700; font-family: 'Space Mono', monospace; }
+    .donut-center .lbl { font-size: 10px; color: var(--text-muted); }
+
+    .legend { display: flex; flex-direction: column; gap: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-val { margin-left: auto; font-weight: 700; font-family: 'Space Mono', monospace; font-size: 12px; }
+
+    /* ─── PAGE: DASHBOARD ──────────────────────────────── */
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 { font-size: 22px; font-weight: 700; }
+    .page-header p  { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ─── ANIMATIONS ───────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .page.active > * {
+      animation: fadeUp .4s ease both;
+    }
+
+    .page.active > *:nth-child(1) { animation-delay: 0s; }
+    .page.active > *:nth-child(2) { animation-delay: .06s; }
+    .page.active > *:nth-child(3) { animation-delay: .12s; }
+    .page.active > *:nth-child(4) { animation-delay: .18s; }
+    .page.active > *:nth-child(5) { animation-delay: .24s; }
+
+    /* ─── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .g4 { grid-template-columns: repeat(2, 1fr); }
+      .g3 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .topbar, .main { left: 0; margin-left: 0; }
+      .g2, .g12, .g21 { grid-template-columns: 1fr; }
+    }
+
+    /* ─── SCROLLBAR GLOBAL ─────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* solar pulse effect on brand icon */
+    @keyframes solarPulse {
+      0%, 100% { box-shadow: 0 0 16px rgba(245,158,11,.3); }
+      50%       { box-shadow: 0 0 32px rgba(245,158,11,.6); }
+    }
+
+    .brand-icon { animation: solarPulse 3s ease-in-out infinite; }
+
+    /* chart animate in */
+    @keyframes growBar { from { height: 0; } }
+    .bar { animation: growBar .6s cubic-bezier(.4,0,.2,1) both; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">☀️</div>
+    <div class="brand-text">
+      <div class="brand-name">SolarSell</div>
+      <div class="brand-tagline">SOLAR MANAGEMENT ERP</div>
+    </div>
+  </div>
+
+  <div class="sidebar-scroll">
+    <div class="nav-section"><span class="nav-section-label">ภาพรวม</span></div>
+    <a class="nav-item active" onclick="showPage('dashboard')">
+      <i class="fa-solid fa-gauge-high"></i> แดชบอร์ด
+    </a>
+
+    <div class="nav-section"><span class="nav-section-label">งานขาย</span></div>
+    <a class="nav-item" onclick="showPage('leads')">
+      <i class="fa-solid fa-user-plus"></i> Leads / ลูกค้าสนใจ
+      <span class="nav-badge">12</span>
+    </a>
+    <a class="nav-item" onclick="showPage('quotations')">
+      <i class="fa-solid fa-file-invoice"></i> ใบเสนอราคา
+      <span class="nav-badge blue">5</span>
+    </a>
+    <a class="nav-item" onclick="showPage('orders')">
+      <i class="fa-solid fa-cart-shopping"></i> ใบสั่งซื้อ
+    </a>
+    <a class="nav-item" onclick="showPage('pipeline')">
+      <i class="fa-solid fa-chart-gantt"></i> Sales Pipeline
+    </a>
+
+    <div class="nav-section"><span class="nav-section-label">งานติดตั้ง</span></div>
+    <a class="nav-item" onclick="showPage('installations')">
+      <i class="fa-solid fa-solar-panel"></i> งานติดตั้ง
+      <span class="nav-badge green">3</span>
+    </a>
+    <a class="nav-item" onclick="showPage('schedule')">
+      <i class="fa-solid fa-calendar-days"></i> ตารางงาน
+    </a>
+    <a class="nav-item" onclick="showPage('teams')">
+      <i class="fa-solid fa-people-group"></i> ทีมช่าง
+    </a>
+
+    <div class="nav-section"><span class="nav-section-label">คลัง / สินค้า</span></div>
+    <a class="nav-item" onclick="showPage('products')">
+      <i class="fa-solid fa-boxes-stacked"></i> สินค้า / วัสดุ
+    </a>
+    <a class="nav-item" onclick="showPage('stock')">
+      <i class="fa-solid fa-warehouse"></i> คลังสินค้า
+    </a>
+
+    <div class="nav-section"><span class="nav-section-label">การเงิน</span></div>
+    <a class="nav-item" onclick="showPage('billing')">
+      <i class="fa-solid fa-file-invoice-dollar"></i> ออกบิล / ใบกำกับ
+    </a>
+    <a class="nav-item" onclick="showPage('payments')">
+      <i class="fa-solid fa-money-bill-wave"></i> รับชำระ
+    </a>
+
+    <div class="nav-section"><span class="nav-section-label">ระบบ</span></div>
+    <a class="nav-item" onclick="showPage('customers')">
+      <i class="fa-solid fa-address-book"></i> ทะเบียนลูกค้า
+    </a>
+    <a class="nav-item" onclick="showPage('reports')">
+      <i class="fa-solid fa-chart-line"></i> รายงาน
+    </a>
+    <a class="nav-item" onclick="showPage('settings')">
+      <i class="fa-solid fa-gear"></i> ตั้งค่า
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-avatar">ส</div>
+    <div class="user-info">
+      <div class="user-name">สมชาย พลังแสง</div>
+      <div class="user-role">ผู้จัดการขาย</div>
+    </div>
+    <div class="icon-btn" style="border:none;background:none;">
+      <i class="fa-solid fa-ellipsis-vertical" style="color:var(--text-muted)"></i>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════ TOPBAR ════════════════════════════════ -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title" id="topbar-title">แดชบอร์ด</div>
+    <div class="topbar-sub">วันอาทิตย์ที่ 1 มิถุนายน 2568</div>
+  </div>
+
+  <div class="topbar-search">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input placeholder="ค้นหา ลูกค้า, งาน, สินค้า..." />
+  </div>
+
+  <div class="topbar-actions">
+    <div class="icon-btn">
+      <i class="fa-solid fa-bell"></i>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="icon-btn">
+      <i class="fa-solid fa-envelope"></i>
+    </div>
+    <button class="btn btn-primary">
+      <i class="fa-solid fa-plus"></i> งานใหม่
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MAIN ══════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── DASHBOARD PAGE ─────────────────────────────────── -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <h1>ยินดีต้อนรับ, สมชาย 👋</h1>
+        <p>ภาพรวมธุรกิจโซลาร์เซลล์ ประจำเดือน มิถุนายน 2568</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost"><i class="fa-solid fa-download"></i> Export</button>
+        <button class="btn btn-ghost"><i class="fa-solid fa-calendar"></i> มิ.ย. 2568</button>
+      </div>
+    </div>
+
+    <!-- KPI STATS -->
+    <div class="grid g4" style="margin-bottom:20px;">
+
+      <div class="stat-card">
+        <div class="stat-icon gold"><i class="fa-solid fa-baht-sign"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">รายได้เดือนนี้</div>
+          <div class="stat-value">฿2.4<small>ล้าน</small></div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +18.4% จากเดือนที่แล้ว</div>
+        </div>
+        <div class="stat-glow gold"></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-solar-panel"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">งานติดตั้งเสร็จแล้ว</div>
+          <div class="stat-value">24<small> โปรเจกต์</small></div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +6 โปรเจกต์</div>
+        </div>
+        <div class="stat-glow green"></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fa-solid fa-file-invoice"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">ใบเสนอราคาที่ส่ง</div>
+          <div class="stat-value">47<small> ฉบับ</small></div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> Conversion 38%</div>
+        </div>
+        <div class="stat-glow blue"></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fa-solid fa-bolt"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">กำลังผลิตรวม (kWp)</div>
+          <div class="stat-value">1,280<small> kWp</small></div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +240 kWp เดือนนี้</div>
+        </div>
+        <div class="stat-glow orange"></div>
+      </div>
+
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="grid g21" style="margin-bottom:20px;">
+
+      <!-- รายได้รายเดือน -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">รายได้รายเดือน</div>
+            <div class="card-sub">เปรียบเทียบปี 2567 vs 2568</div>
+          </div>
+          <div style="display:flex;gap:16px;font-size:11px;">
+            <span style="display:flex;align-items:center;gap:5px;color:var(--solar-gold)">
+              <span style="width:10px;height:3px;background:var(--solar-gold);border-radius:2px;display:inline-block"></span> 2568
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;color:var(--text-muted)">
+              <span style="width:10px;height:3px;background:var(--text-muted);border-radius:2px;display:inline-block"></span> 2567
+            </span>
+          </div>
+        </div>
+        <div class="chart-bars" style="height:150px;">
+          <div class="bar-wrap">
+            <div class="bar" style="height:60%;animation-delay:.05s" data-val="฿1.2M"></div>
+            <div class="bar-label">ม.ค.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar" style="height:75%;animation-delay:.1s" data-val="฿1.5M"></div>
+            <div class="bar-label">ก.พ.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar" style="height:55%;animation-delay:.15s" data-val="฿1.1M"></div>
+            <div class="bar-label">มี.ค.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar" style="height:85%;animation-delay:.2s" data-val="฿1.7M"></div>
+            <div class="bar-label">เม.ย.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar" style="height:90%;animation-delay:.25s" data-val="฿1.8M"></div>
+            <div class="bar-label">พ.ค.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar" style="height:100%;animation-delay:.3s" data-val="฿2.4M"></div>
+            <div class="bar-label">มิ.ย.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar blue" style="height:40%;animation-delay:.35s" data-val="฿0.8M (67)"></div>
+            <div class="bar-label">ก.ค.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar blue" style="height:45%;animation-delay:.4s" data-val="฿0.9M (67)"></div>
+            <div class="bar-label">ส.ค.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar blue" style="height:50%;animation-delay:.45s" data-val="฿1.0M (67)"></div>
+            <div class="bar-label">ก.ย.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar blue" style="height:65%;animation-delay:.5s" data-val="฿1.3M (67)"></div>
+            <div class="bar-label">ต.ค.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar blue" style="height:70%;animation-delay:.55s" data-val="฿1.4M (67)"></div>
+            <div class="bar-label">พ.ย.</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar blue" style="height:80%;animation-delay:.6s" data-val="฿1.6M (67)"></div>
+            <div class="bar-label">ธ.ค.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประเภทระบบ -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">ประเภทระบบที่ขาย</div>
+            <div class="card-sub">เดือนมิถุนายน</div>
+          </div>
+        </div>
+
+        <div class="donut-wrap">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <!-- On-Grid 52% -->
+            <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="18"/>
+            <circle cx="70" cy="70" r="54" fill="none" stroke="#f59e0b" stroke-width="18"
+              stroke-dasharray="176 163" stroke-linecap="round"/>
+            <!-- Hybrid 30% -->
+            <circle cx="70" cy="70" r="54" fill="none" stroke="#3b82f6" stroke-width="18"
+              stroke-dasharray="102 237" stroke-dashoffset="-176" stroke-linecap="round"/>
+            <!-- Off-Grid 18% -->
+            <circle cx="70" cy="70" r="54" fill="none" stroke="#10b981" stroke-width="18"
+              stroke-dasharray="61 278" stroke-dashoffset="-278" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-center">
+            <div class="val">47</div>
+            <div class="lbl">โปรเจกต์</div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--solar-gold)"></div>
+            <span style="font-size:12px;">On-Grid</span>
+            <span class="legend-val" style="color:var(--solar-gold)">24</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--blue)"></div>
+            <span style="font-size:12px;">Hybrid</span>
+            <span class="legend-val" style="color:var(--blue)">14</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--green)"></div>
+            <span style="font-size:12px;">Off-Grid</span>
+            <span class="legend-val" style="color:var(--green)">9</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="grid g21">
+
+      <!-- งานติดตั้งล่าสุด -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">งานติดตั้งล่าสุด</div>
+            <div class="card-sub">6 รายการล่าสุด</div>
+          </div>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;">ดูทั้งหมด</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ลูกค้า</th>
+                <th>ระบบ</th>
+                <th>ขนาด</th>
+                <th>มูลค่า</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div style="font-weight:600;">โรงงานอุตสาหกรรม XYZ</div>
+                  <div style="font-size:11px;color:var(--text-muted)">จ.ระยอง</div>
+                </td>
+                <td>On-Grid</td>
+                <td><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--solar-gold)">100 kWp</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700;">฿3,200,000</td>
+                <td><span class="badge badge-green">ติดตั้งแล้ว</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="font-weight:600;">บ้านพักอาศัย นายสมศักดิ์</div>
+                  <div style="font-size:11px;color:var(--text-muted)">กรุงเทพฯ</div>
+                </td>
+                <td>Hybrid</td>
+                <td><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--solar-gold)">10 kWp</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700;">฿450,000</td>
+                <td><span class="badge badge-blue">กำลังติดตั้ง</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="font-weight:600;">ฟาร์มโคนมอุดม</div>
+                  <div style="font-size:11px;color:var(--text-muted)">จ.เชียงใหม่</div>
+                </td>
+                <td>Off-Grid</td>
+                <td><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--solar-gold)">30 kWp</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700;">฿980,000</td>
+                <td><span class="badge badge-gold">รอดำเนินการ</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="font-weight:600;">โรงแรมซีไซด์ พัทยา</div>
+                  <div style="font-size:11px;color:var(--text-muted)">จ.ชลบุรี</div>
+                </td>
+                <td>On-Grid</td>
+                <td><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--solar-gold)">200 kWp</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700;">฿6,400,000</td>
+                <td><span class="badge badge-green">ติดตั้งแล้ว</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="font-weight:600;">ห้างสรรพสินค้า มอลล์ดี</div>
+                  <div style="font-size:11px;color:var(--text-muted)">จ.นนทบุรี</div>
+                </td>
+                <td>Hybrid</td>
+                <td><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--solar-gold)">500 kWp</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700;">฿15,000,000</td>
+                <td><span class="badge badge-purple">สำรวจพื้นที่</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="font-weight:600;">วัดพระธาตุ</div>
+                  <div style="font-size:11px;color:var(--text-muted)">จ.ลำพูน</div>
+                </td>
+                <td>Off-Grid</td>
+                <td><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--solar-gold)">5 kWp</span></td>
+                <td style="font-family:'Space Mono',monospace;font-weight:700;">฿180,000</td>
+                <td><span class="badge badge-red">ยกเลิก</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- เป้าหมายเดือน -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">เป้าหมายเดือนนี้</div>
+            <div class="card-sub">มิถุนายน 2568</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>รายได้รวม</span>
+              <span>฿2.4M / ฿3M</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:80%"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>จำนวนโปรเจกต์</span>
+              <span>24 / 30</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill blue" style="width:80%"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Conversion Rate</span>
+              <span>38% / 45%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill green" style="width:84%"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>กำลังผลิต (kWp)</span>
+              <span>1,280 / 2,000</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:64%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius-sm);padding:14px;">
+          <div style="font-size:12px;color:var(--solar-gold);font-weight:600;margin-bottom:6px;">
+            <i class="fa-solid fa-lightbulb"></i> AI Insight
+          </div>
+          <div style="font-size:12px;color:var(--text-soft);line-height:1.6;">
+            หากปิด deal <strong style="color:var(--text-primary)">ห้างมอลล์ดี</strong> ได้ภายในสิ้นเดือน จะทำให้บรรลุเป้า <strong style="color:var(--solar-gold)">153%</strong> ของเดือนนี้
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── PIPELINE PAGE ───────────────────────────────────── -->
+  <div class="page" id="page-pipeline">
+    <div class="page-header">
+      <div>
+        <h1>Sales Pipeline</h1>
+        <p>ติดตามดีลทุกขั้นตอน — มูลค่ารวม ฿28.4 ล้าน</p>
+      </div>
+      <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มดีลใหม่</button>
+    </div>
+
+    <!-- stat mini -->
+    <div class="grid g4" style="margin-bottom:20px;">
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon blue" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-user-magnifying-glass"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">Leads</div>
+          <div class="stat-value" style="font-size:20px;">12</div>
+        </div>
+      </div>
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon gold" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-file-invoice"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">เสนอราคา</div>
+          <div class="stat-value" style="font-size:20px;">8</div>
+        </div>
+      </div>
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon orange" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-handshake"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">เจรจา</div>
+          <div class="stat-value" style="font-size:20px;">5</div>
+        </div>
+      </div>
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon green" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-body">
+          <div class="stat-label">ปิดดีลแล้ว</div>
+          <div class="stat-value" style="font-size:20px;">24</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline">
+
+      <!-- Lead -->
+      <div class="pipeline-col">
+        <div class="pipeline-header">
+          <div class="pipeline-stage">
+            <div class="stage-dot" style="background:#3b82f6"></div> Leads
+          </div>
+          <span class="pipeline-count">12 ดีล · ฿4.2M</span>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">บริษัท กรีนพาวเวอร์ จำกัด</div>
+          <div class="deal-value">฿1,200,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 40 kWp · On-Grid</div>
+          <div class="deal-meta"><i class="fa-solid fa-user"></i> นำเสนอผ่าน Facebook</div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">นาย ประยงค์ มีสุข</div>
+          <div class="deal-value">฿280,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 8 kWp · Hybrid</div>
+          <div class="deal-meta"><i class="fa-solid fa-user"></i> แนะนำโดยลูกค้าเก่า</div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">โรงเรียนชัยวิทยา</div>
+          <div class="deal-value">฿520,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 20 kWp · On-Grid</div>
+          <div class="deal-meta"><i class="fa-solid fa-user"></i> Inquiry ทาง LINE</div>
+        </div>
+      </div>
+
+      <!-- เสนอราคา -->
+      <div class="pipeline-col">
+        <div class="pipeline-header">
+          <div class="pipeline-stage">
+            <div class="stage-dot" style="background:var(--solar-gold)"></div> เสนอราคา
+          </div>
+          <span class="pipeline-count">8 ดีล · ฿9.6M</span>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">โรงพยาบาลสุขใจ</div>
+          <div class="deal-value">฿4,500,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 150 kWp · On-Grid</div>
+          <div class="deal-meta" style="color:var(--red)"><i class="fa-solid fa-clock"></i> หมดอายุใน 3 วัน</div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">นิคมอุตสาหกรรมอีสาน</div>
+          <div class="deal-value">฿2,800,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 90 kWp · Hybrid</div>
+          <div class="deal-meta"><i class="fa-solid fa-clock"></i> หมดอายุใน 12 วัน</div>
+        </div>
+      </div>
+
+      <!-- สำรวจพื้นที่ -->
+      <div class="pipeline-col">
+        <div class="pipeline-header">
+          <div class="pipeline-stage">
+            <div class="stage-dot" style="background:var(--purple)"></div> สำรวจพื้นที่
+          </div>
+          <span class="pipeline-count">3 ดีล · ฿16.5M</span>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">ห้างมอลล์ดี</div>
+          <div class="deal-value">฿15,000,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 500 kWp · Hybrid</div>
+          <div class="deal-meta" style="color:var(--solar-gold)"><i class="fa-solid fa-star"></i> ดีลใหญ่ที่สุดเดือนนี้</div>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">ไร่ชา เชียงราย</div>
+          <div class="deal-value">฿960,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 30 kWp · Off-Grid</div>
+          <div class="deal-meta"><i class="fa-solid fa-map-pin"></i> จ.เชียงราย</div>
+        </div>
+      </div>
+
+      <!-- เจรจา/ต่อรอง -->
+      <div class="pipeline-col">
+        <div class="pipeline-header">
+          <div class="pipeline-stage">
+            <div class="stage-dot" style="background:var(--solar-orange)"></div> เจรจา
+          </div>
+          <span class="pipeline-count">2 ดีล · ฿3.8M</span>
+        </div>
+        <div class="deal-card">
+          <div class="deal-name">โรงงานผลิตอาหาร ABC</div>
+          <div class="deal-value">฿2,800,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 80 kWp · On-Grid</div>
+          <div class="deal-meta"><i class="fa-solid fa-comments-dollar"></i> รอ PO จากผู้บริหาร</div>
+        </div>
+      </div>
+
+      <!-- ปิดดีล -->
+      <div class="pipeline-col">
+        <div class="pipeline-header">
+          <div class="pipeline-stage">
+            <div class="stage-dot" style="background:var(--green)"></div> ปิดดีลแล้ว
+          </div>
+          <span class="pipeline-count">24 ดีล · ฿24.1M</span>
+        </div>
+        <div class="deal-card" style="border-color:rgba(16,185,129,.2)">
+          <div class="deal-name">โรงแรมซีไซด์ พัทยา</div>
+          <div class="deal-value">฿6,400,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 200 kWp · On-Grid</div>
+          <div class="deal-meta" style="color:var(--green)"><i class="fa-solid fa-check-circle"></i> ติดตั้งแล้ว</div>
+        </div>
+        <div class="deal-card" style="border-color:rgba(16,185,129,.2)">
+          <div class="deal-name">โรงงาน XYZ</div>
+          <div class="deal-value">฿3,200,000</div>
+          <div class="deal-meta"><i class="fa-solid fa-solar-panel"></i> 100 kWp · On-Grid</div>
+          <div class="deal-meta" style="color:var(--green)"><i class="fa-solid fa-check-circle"></i> ติดตั้งแล้ว</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── INSTALLATIONS PAGE ─────────────────────────────── -->
+  <div class="page" id="page-installations">
+    <div class="page-header">
+      <div>
+        <h1>งานติดตั้ง</h1>
+        <p>ติดตามความคืบหน้างานติดตั้งทั้งหมด</p>
+      </div>
+      <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> สร้างงานติดตั้ง</button>
+    </div>
+
+    <div class="grid g4" style="margin-bottom:20px;">
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon gold" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-list-check"></i></div>
+        <div class="stat-body"><div class="stat-label">งานทั้งหมด</div><div class="stat-value" style="font-size:20px;">38</div></div>
+      </div>
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon blue" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+        <div class="stat-body"><div class="stat-label">กำลังดำเนินการ</div><div class="stat-value" style="font-size:20px;">7</div></div>
+      </div>
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon green" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-body"><div class="stat-label">เสร็จแล้ว</div><div class="stat-value" style="font-size:20px;">24</div></div>
+      </div>
+      <div class="stat-card" style="padding:16px 18px;">
+        <div class="stat-icon red" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-body"><div class="stat-label">มีปัญหา</div><div class="stat-value" style="font-size:20px;">2</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">รายการงานติดตั้งทั้งหมด</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;"><i class="fa-solid fa-filter"></i> กรอง</button>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;"><i class="fa-solid fa-download"></i> Export</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>รหัสงาน</th>
+              <th>ลูกค้า / สถานที่</th>
+              <th>ระบบ</th>
+              <th>ขนาด</th>
+              <th>ทีมช่าง</th>
+              <th>วันติดตั้ง</th>
+              <th>ความคืบหน้า</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:'Space Mono',monospace;color:var(--solar-gold)">INS-2568-047</td>
+              <td><div style="font-weight:600;">โรงแรมซีไซด์</div><div style="font-size:11px;color:var(--text-muted)">พัทยา ชลบุรี</div></td>
+              <td>On-Grid</td>
+              <td style="font-weight:700;">200 kWp</td>
+              <td>ทีม A (ช่าง 5 คน)</td>
+              <td>1–5 มิ.ย. 68</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="progress-track" style="flex:1;"><div class="progress-fill green" style="width:100%"></div></div>
+                  <span style="font-size:11px;font-weight:700;color:var(--green)">100%</span>
+                </div>
+              </td>
+              <td><span class="badge badge-green">เสร็จแล้ว</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Mono',monospace;color:var(--solar-gold)">INS-2568-051</td>
+              <td><div style="font-weight:600;">บ้าน นายสมศักดิ์</div><div style="font-size:11px;color:var(--text-muted)">บางนา กรุงเทพฯ</div></td>
+              <td>Hybrid</td>
+              <td style="font-weight:700;">10 kWp</td>
+              <td>ทีม B (ช่าง 2 คน)</td>
+              <td>3 มิ.ย. 68</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="progress-track" style="flex:1;"><div class="progress-fill blue" style="width:65%"></div></div>
+                  <span style="font-size:11px;font-weight:700;color:var(--blue)">65%</span>
+                </div>
+              </td>
+              <td><span class="badge badge-blue">กำลังติดตั้ง</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Mono',monospace;color:var(--solar-gold)">INS-2568-054</td>
+              <td><div style="font-weight:600;">ห้างมอลล์ดี</div><div style="font-size:11px;color:var(--text-muted)">นนทบุรี</div></td>
+              <td>Hybrid</td>
+              <td style="font-weight:700;">500 kWp</td>
+              <td>ยังไม่มอบหมาย</td>
+              <td>15 มิ.ย. 68</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="progress-track" style="flex:1;"><div class="progress-fill" style="width:0%"></div></div>
+                  <span style="font-size:11px;font-weight:700;color:var(--text-muted)">0%</span>
+                </div>
+              </td>
+              <td><span class="badge badge-gold">รอดำเนินการ</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Mono',monospace;color:var(--solar-gold)">INS-2568-049</td>
+              <td><div style="font-weight:600;">ฟาร์มโคนมอุดม</div><div style="font-size:11px;color:var(--text-muted)">เชียงใหม่</div></td>
+              <td>Off-Grid</td>
+              <td style="font-weight:700;">30 kWp</td>
+              <td>ทีม C (ช่าง 3 คน)</td>
+              <td>8–10 มิ.ย. 68</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="progress-track" style="flex:1;"><div class="progress-fill" style="width:30%"></div></div>
+                  <span style="font-size:11px;font-weight:700;color:var(--solar-gold)">30%</span>
+                </div>
+              </td>
+              <td><span class="badge badge-blue">กำลังติดตั้ง</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Mono',monospace;color:var(--solar-gold)">INS-2568-043</td>
+              <td><div style="font-weight:600;">โรงงาน XYZ</div><div style="font-size:11px;color:var(--text-muted)">ระยอง</div></td>
+              <td>On-Grid</td>
+              <td style="font-weight:700;">100 kWp</td>
+              <td>ทีม A (ช่าง 5 คน)</td>
+              <td>20–25 พ.ค. 68</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="progress-track" style="flex:1;"><div class="progress-fill green" style="width:100%"></div></div>
+                  <span style="font-size:11px;font-weight:700;color:var(--green)">100%</span>
+                </div>
+              </td>
+              <td><span class="badge badge-green">เสร็จแล้ว</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLACEHOLDER PAGES ──────────────────────────────── -->
+  <div class="page" id="page-leads">
+    <div class="page-header"><div><h1>Leads / ลูกค้าสนใจ</h1><p>จัดการรายชื่อลูกค้าที่สนใจสินค้าและบริการ</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่ม Lead</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-user-plus" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">หน้า Leads — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-quotations">
+    <div class="page-header"><div><h1>ใบเสนอราคา</h1><p>สร้างและจัดการใบเสนอราคาโซลาร์เซลล์</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> สร้างใบเสนอราคา</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-file-invoice" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">หน้าใบเสนอราคา — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-orders">
+    <div class="page-header"><div><h1>ใบสั่งซื้อ</h1><p>จัดการใบสั่งซื้อและการจัดส่ง</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> สร้างใบสั่งซื้อ</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-cart-shopping" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">หน้าใบสั่งซื้อ — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-schedule">
+    <div class="page-header"><div><h1>ตารางงาน</h1><p>จัดตารางงานติดตั้งและนัดหมายทีมช่าง</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มนัด</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-calendar-days" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">ตารางงาน — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-teams">
+    <div class="page-header"><div><h1>ทีมช่าง</h1><p>จัดการทีมช่างและการมอบหมายงาน</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มสมาชิก</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-people-group" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">ทีมช่าง — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-products">
+    <div class="page-header"><div><h1>สินค้า / วัสดุ</h1><p>ทะเบียนสินค้า แผงโซลาร์ อินเวอร์เตอร์ แบตเตอรี่ อุปกรณ์ต่างๆ</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-boxes-stacked" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">ทะเบียนสินค้า — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-stock">
+    <div class="page-header"><div><h1>คลังสินค้า</h1><p>ติดตามสต็อกแผงโซลาร์ อินเวอร์เตอร์ และอุปกรณ์</p></div></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-warehouse" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">คลังสินค้า — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-billing">
+    <div class="page-header"><div><h1>ออกบิล / ใบกำกับภาษี</h1><p>สร้างและจัดการใบแจ้งหนี้ ใบกำกับภาษี</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> ออกบิล</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-file-invoice-dollar" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">ระบบออกบิล — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-payments">
+    <div class="page-header"><div><h1>รับชำระ</h1><p>บันทึกการรับชำระเงินและติดตามลูกหนี้</p></div></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-money-bill-wave" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">รับชำระ — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-customers">
+    <div class="page-header"><div><h1>ทะเบียนลูกค้า</h1><p>จัดการข้อมูลลูกค้าและประวัติการซื้อ</p></div><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มลูกค้า</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-address-book" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">ทะเบียนลูกค้า — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-reports">
+    <div class="page-header"><div><h1>รายงาน</h1><p>รายงานยอดขาย งานติดตั้ง และกำไร</p></div><button class="btn btn-ghost"><i class="fa-solid fa-download"></i> Export PDF</button></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-chart-line" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">รายงาน — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+  <div class="page" id="page-settings">
+    <div class="page-header"><div><h1>ตั้งค่า</h1><p>ตั้งค่าระบบ ผู้ใช้ สิทธิ์ และการแจ้งเตือน</p></div></div>
+    <div class="card" style="text-align:center;padding:60px;"><i class="fa-solid fa-gear" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;"></i><div style="color:var(--text-muted);font-size:14px;">ตั้งค่า — อยู่ระหว่างพัฒนา</div></div>
+  </div>
+
+</main>
+
+<script>
+  const pageLabels = {
+    dashboard: 'แดชบอร์ด',
+    leads: 'Leads / ลูกค้าสนใจ',
+    quotations: 'ใบเสนอราคา',
+    orders: 'ใบสั่งซื้อ',
+    pipeline: 'Sales Pipeline',
+    installations: 'งานติดตั้ง',
+    schedule: 'ตารางงาน',
+    teams: 'ทีมช่าง',
+    products: 'สินค้า / วัสดุ',
+    stock: 'คลังสินค้า',
+    billing: 'ออกบิล / ใบกำกับ',
+    payments: 'รับชำระ',
+    customers: 'ทะเบียนลูกค้า',
+    reports: 'รายงาน',
+    settings: 'ตั้งค่า',
+  };
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    const page = document.getElementById('page-' + id);
+    if (page) {
+      page.classList.add('active');
+      // force reflow for animation re-trigger
+      void page.offsetWidth;
+    }
+
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') === `showPage('${id}')`) {
+        n.classList.add('active');
+      }
+    });
+
+    document.getElementById('topbar-title').textContent = pageLabels[id] || id;
+  }
+</script>
+</body>
+</html>

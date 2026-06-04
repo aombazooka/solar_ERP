@@ -1,0 +1,25 @@
+# ─── ความลับ / config ───
+/config/config.php
+
+# ─── อัปโหลด / ไฟล์ผู้ใช้ (PDPA: รูปเช็คอิน ฯลฯ) ───
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# ─── log ───
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+# ─── editor / OS ───
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# ─── ไฟล์ชั่วคราวของ MS Word ───
+~$*
+~WRL*.tmp
+*.tmp
+
+# ─── สถานะเครื่องมือ/เอเจนต์ภายในเครื่อง ───
+.claude/

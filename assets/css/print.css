@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════════════════════
+   SolarSell — เอกสารพิมพ์ (A4, ขาว, พิมพ์ → บันทึก PDF ได้)
+   ═══════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: #e5e7eb;
+  color: #1f2937;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 24px;
+}
+
+.doc {
+  background: #fff;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 18mm 16mm;
+  box-shadow: 0 4px 24px rgba(0,0,0,.15);
+}
+
+/* แถบเครื่องมือ (ไม่พิมพ์) */
+.toolbar {
+  max-width: 210mm; margin: 0 auto 16px;
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+.toolbar a, .toolbar button {
+  font-family: 'Sarabun', sans-serif;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; text-decoration: none;
+}
+.btn-print { background: linear-gradient(135deg,#f59e0b,#ea580c); color: #fff; }
+.btn-back  { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+
+/* ─── header ─── */
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f59e0b; padding-bottom: 16px; margin-bottom: 22px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo { width: 48px; height: 48px; background: linear-gradient(135deg,#f59e0b,#ea580c); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.brand-name { font-size: 22px; font-weight: 700; color: #111827; }
+.brand-sub  { font-size: 11px; color: #6b7280; }
+.doc-meta { text-align: right; }
+.doc-type { font-size: 24px; font-weight: 700; color: #f59e0b; letter-spacing: 1px; }
+.doc-no   { font-size: 14px; font-weight: 600; margin-top: 4px; font-family: monospace; }
+.doc-date { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+/* ─── parties ─── */
+.parties { display: flex; justify-content: space-between; margin-bottom: 22px; gap: 24px; }
+.party { flex: 1; }
+.party-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; font-weight: 600; }
+.party-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.party-line { font-size: 12px; color: #4b5563; }
+
+/* ─── table ─── */
+table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+thead th { background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 10px 12px; text-align: left; }
+thead th:last-child, td.num { text-align: right; }
+tbody td { padding: 10px 12px; font-size: 12.5px; border-bottom: 1px solid #e5e7eb; }
+tbody tr:nth-child(even) td { background: #f9fafb; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ─── totals ─── */
+.totals { width: 280px; margin-left: auto; }
+.totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+.totals .row.grand { border-top: 2px solid #1f2937; margin-top: 6px; padding-top: 10px; font-size: 17px; font-weight: 700; color: #ea580c; }
+.totals .muted { color: #6b7280; }
+
+/* ─── footer ─── */
+.doc-foot { margin-top: 36px; display: flex; justify-content: space-between; gap: 40px; }
+.sign { flex: 1; text-align: center; }
+.sign-line { border-top: 1px dotted #9ca3af; margin-top: 48px; padding-top: 6px; font-size: 12px; color: #6b7280; }
+.note-box { margin-top: 24px; padding: 12px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 12px; color: #92400e; }
+.status-stamp { display: inline-block; padding: 4px 14px; border: 2px solid; border-radius: 6px; font-weight: 700; font-size: 13px; transform: rotate(-4deg); }
+.stamp-paid { color: #059669; border-color: #059669; }
+.stamp-unpaid { color: #dc2626; border-color: #dc2626; }
+.stamp-partial { color: #d97706; border-color: #d97706; }
+
+/* ─── พิมพ์ ─── */
+@media print {
+  body { background: #fff; padding: 0; }
+  .toolbar { display: none !important; }
+  .doc { box-shadow: none; width: 100%; min-height: auto; margin: 0; padding: 0; }
+  @page { size: A4; margin: 14mm; }
+}
