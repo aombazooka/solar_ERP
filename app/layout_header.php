@@ -115,6 +115,10 @@ $unreadNotif = (int) Database::scalar(
   </div>
 
   <div class="sidebar-scroll">
+    <form class="nav-search" method="get" action="<?= e(url('search.php')) ?>">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input name="q" placeholder="ค้นหา ลูกค้า, งาน, สินค้า..." autocomplete="off">
+    </form>
     <?php /* ใช้ชื่อตัวแปร $nav* กันชนกับตัวแปรในหน้าเพจ (เช่น $items/$it) */ ?>
     <?php foreach ($navGroups as $navGroupName => $navGroupItems):
         // กรองเฉพาะเมนูที่ผู้ใช้มีสิทธิ์
@@ -144,7 +148,12 @@ $unreadNotif = (int) Database::scalar(
   </div>
 </aside>
 
+<div class="sidebar-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
 <div class="topbar">
+  <button class="icon-btn nav-toggle" type="button" onclick="toggleNav()" aria-label="เปิด/ปิดเมนู" title="เมนู">
+    <i class="fa-solid fa-bars"></i>
+  </button>
   <div class="topbar-titlewrap">
     <div class="topbar-title"><?= e($title) ?></div>
     <div class="topbar-sub"><?= e(thai_date()) ?></div>
@@ -167,6 +176,16 @@ $unreadNotif = (int) Database::scalar(
 <script>
   /* enable smooth transitions only after first paint */
   requestAnimationFrame(function () { document.body.classList.add('theme-ready'); });
+
+  /* ── mobile slide-in navigation ── */
+  function openNav()  { document.querySelector('.sidebar').classList.add('open'); document.getElementById('navBackdrop').classList.add('show'); document.body.style.overflow = 'hidden'; }
+  function closeNav() { document.querySelector('.sidebar').classList.remove('open'); document.getElementById('navBackdrop').classList.remove('show'); document.body.style.overflow = ''; }
+  function toggleNav(){ document.querySelector('.sidebar').classList.contains('open') ? closeNav() : openNav(); }
+  // ปิดเมนูเมื่อกดลิงก์เมนู (เพื่อให้ไปหน้าใหม่แบบไม่ค้างเมนู) และเมื่อกด Esc / ขยายจอ
+  document.querySelectorAll('.sidebar .nav-item').forEach(function (a) { a.addEventListener('click', closeNav); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
+  window.addEventListener('resize', function () { if (window.innerWidth > 768) closeNav(); });
+
   function toggleTheme(btn) {
     var isLight = document.documentElement.getAttribute('data-theme') === 'light';
     if (isLight) { document.documentElement.removeAttribute('data-theme'); store('dark'); }
