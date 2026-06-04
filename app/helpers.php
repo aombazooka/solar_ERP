@@ -11,10 +11,22 @@ function e(?string $value): string
     return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/** สร้าง URL เต็มจาก path (เติม base_url ให้) */
+/** สร้าง URL เต็มจาก path (เติม base_url ให้)
+ *  base_url = 'auto' หรือไม่ตั้งค่า → ตรวจหาจากตำแหน่งสคริปต์อัตโนมัติ
+ *  (ทำให้ย้าย/clone ไปวางในโฟลเดอร์ชื่ออะไรก็ได้ โดยไม่ต้องแก้ config) */
 function url(string $path = ''): string
 {
-    $base = rtrim($GLOBALS['config']['app']['base_url'] ?? '', '/');
+    static $base = null;
+    if ($base === null) {
+        $cfg = $GLOBALS['config']['app']['base_url'] ?? 'auto';
+        if ($cfg === 'auto' || $cfg === null) {
+            // เดาจากโฟลเดอร์ของไฟล์ที่ถูกเรียก เช่น /solar_ERP/index.php → /solar_ERP
+            $dir  = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+            $base = ($dir === '/' || $dir === '.') ? '' : rtrim($dir, '/');
+        } else {
+            $base = rtrim($cfg, '/');
+        }
+    }
     return $base . '/' . ltrim($path, '/');
 }
 

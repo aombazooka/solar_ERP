@@ -23,7 +23,7 @@ return [
     // ─── แอป ───
     'app' => [
         'name'      => 'SolarSell',
-        'base_url'  => '/tps_erp',          // path ใต้ htdocs (ปรับถ้าวางที่อื่น)
+        'base_url'  => 'auto',              // 'auto' = ตรวจโฟลเดอร์อัตโนมัติ (clone ชื่ออะไรก็ได้) · หรือระบุเอง เช่น '/tps_erp'
         'env'       => 'local',             // local | production
         'debug'     => true,                // production ให้ตั้ง false
         'timezone'  => 'Asia/Bangkok',
