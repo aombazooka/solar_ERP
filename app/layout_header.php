@@ -101,7 +101,8 @@ $unreadNotif = (int) Database::scalar(
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>">
+  <?php $cssVer = @filemtime(__DIR__ . '/../assets/css/app.css') ?: '1'; ?>
+  <link rel="stylesheet" href="<?= e(url('assets/css/app.css?v=' . $cssVer)) ?>">
 </head>
 <body>
 
