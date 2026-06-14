@@ -531,6 +531,15 @@ tr:hover td { background: var(--overlay-row); }
 
   /* ปุ่มหลักเต็มความกว้างเพื่อกดง่ายด้วยนิ้ว */
   .page-header .btn { width: 100%; justify-content: center; }
+
+  /* แปลงตารางเป็น Card Layout บนมือถือ */
+  .table-wrap table, .table-wrap tbody, .table-wrap tr, .table-wrap td { display: block; width: 100%; }
+  .table-wrap thead { display: none; }
+  .table-wrap tr { margin-bottom: 15px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--bg-base); }
+  .table-wrap td { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--td-border); text-align: right; white-space: normal; }
+  .table-wrap td:last-child { border-bottom: none; padding-bottom: 0; }
+  .table-wrap td:first-child { padding-top: 0; }
+  .table-wrap td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); text-align: left; margin-right: 15px; font-size: 11px; text-transform: uppercase; flex-shrink: 0; }
 }
 
 /* จอเล็กมาก (มือถือแนวตั้งทั่วไป) */

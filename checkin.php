@@ -126,11 +126,16 @@ require __DIR__ . '/app/layout_header.php';
           <?php else: foreach ($recent as $c):
               [$lbl,$cls,$ic] = Geo::statusLabel($c['status']); ?>
             <tr>
-              <td class="text-muted" style="font-size:11px;"><?= e(date('d/m H:i', strtotime($c['created_at']))) ?></td>
-              <td style="font-weight:600;"><?= e($c['emp_name']) ?></td>
-              <td style="font-size:12px;"><?= e($c['site_name']) ?></td>
-              <td class="mono"><?= number_format((float)$c['distance_from_site_m']) ?> ม.</td>
-              <td><span class="badge <?= e($cls) ?>"><i class="fa-solid <?= e($ic) ?>" style="font-size:9px;"></i> <?= e($lbl) ?></span></td>
+              <td data-label="เวลา" class="text-muted" style="font-size:11px;"><?= e(date('d/m H:i', strtotime($c['created_at']))) ?></td>
+              <td data-label="พนักงาน" style="font-weight:600;">
+                <?= e($c['emp_name']) ?>
+                <?php if (!empty($c['photo_path'])): ?>
+                  <a href="<?= e(url('view_image.php?file=' . urlencode($c['photo_path']))) ?>" target="_blank" title="ดูรูปถ่าย" style="margin-left:5px; color:var(--primary); font-size:14px;"><i class="fa-regular fa-image"></i></a>
+                <?php endif; ?>
+              </td>
+              <td data-label="ไซต์" style="font-size:12px;"><?= e($c['site_name']) ?></td>
+              <td data-label="ระยะ" class="mono"><?= number_format((float)$c['distance_from_site_m']) ?> ม.</td>
+              <td data-label="สถานะ"><span class="badge <?= e($cls) ?>"><i class="fa-solid <?= e($ic) ?>" style="font-size:9px;"></i> <?= e($lbl) ?></span></td>
             </tr>
           <?php endforeach; endif; ?>
         </tbody>
